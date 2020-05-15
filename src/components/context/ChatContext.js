@@ -1,6 +1,8 @@
 import createDataContext from "./createDataContext";
+import { setUserInLocalStorage } from "../../utils/manageUser";
 
 const initialState = {
+  currentUser: {},
   usersArray: [
     { id: 1, name: "Bilal Ahmad", image: "bilal" },
     { id: 2, name: "Waleed Mujahid", image: "waleed" },
@@ -41,6 +43,9 @@ const chatReducer = (state, { type, payload }) => {
     case "ADD_MESSAGES_TO_CHAT":
       return { ...state, chatMessages: [...chatMessages, payload] };
 
+    case "SET_CURRENT_USER":
+      return { ...state, currentUser: payload };
+
     default:
       return state;
   }
@@ -53,8 +58,21 @@ const addMessagesToChat = (dispatch) => {
   };
 };
 
+const setCurrentUser = (dispatch) => {
+  return (user) => {
+    console.log("USer about to set => ", user);
+    if (Object.keys(user).length > 0) {
+      user.image =
+        "https://res.cloudinary.com/dlin8rzcj/image/upload/v1589495323/el7sqn6ul2qjekvddi9h.jpg";
+
+      setUserInLocalStorage(user);
+    }
+
+    dispatch({ type: "SET_CURRENT_USER", payload: user });
+  };
+};
 export const { Provider, Context } = createDataContext(
   chatReducer,
-  { addMessagesToChat },
+  { addMessagesToChat, setCurrentUser },
   initialState
 );

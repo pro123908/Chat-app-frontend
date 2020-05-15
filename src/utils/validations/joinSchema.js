@@ -21,3 +21,7 @@ export const loginSchema = Yup.object().shape({
     .required("Password is required")
     .min(6, "Password Should be at least 6 characters"),
 });
+
+export const avatarValidator = Yup.object().shape({
+  avatar: Yup.string().required("Please select an avatar"),
+});

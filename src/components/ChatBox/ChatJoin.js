@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import axios from "../../API/axios";
 import {
   registerSchema,
@@ -7,15 +7,25 @@ import {
 import ChatRegister from "../ChatBoxComponents/ChatRegister";
 import ChatLogin from "../ChatBoxComponents/ChatLogin";
 import ChatAvatar from "../ChatBoxComponents/ChatAvatar";
+import { storeAuthToken, getAuthToken } from "../../utils/authToken";
+import { Context } from "../context/ChatContext";
 
-const ChatJoin = () => {
-  const [showLogin, setShowLogin] = useState(false);
-  const [showAvatarForm, setShowAvatarForm] = useState(true);
+const ChatJoin = ({ setShowJoin }) => {
+  const {
+    setCurrentUser,
+    state: { currentUser },
+  } = useContext(Context);
+
+  const [showLogin, setShowLogin] = useState(true);
+  const [showAvatarForm, setShowAvatarForm] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   const [email, setEmail] = useState("pro123908@gmail.com");
   const [name, setName] = useState("Bilal");
   const [password, setPassword] = useState("home123");
   const [errors, setErrors] = useState({});
+  const [selectedAvatar, setSelectedAvatar] = useState(null);
+  const [serverError, setServerError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const onChangeImage = (e) => {
     console.log(e.target.files[0]);
@@ -24,6 +34,7 @@ const ChatJoin = () => {
 
     if (uploadedPicture) {
       let fileReader = new FileReader();
+      setSelectedAvatar(e.target.files[0]);
 
       fileReader.readAsDataURL(uploadedPicture);
       fileReader.onload = function (event) {
@@ -52,18 +63,53 @@ const ChatJoin = () => {
     return errors;
   };
 
+  const onUploadAvatar = async (upload = true) => {
+    if (!upload) setShowJoin(false);
+    else if (selectedAvatar) {
+      const data = new FormData();
+      data.append("avatar", selectedAvatar);
+
+      let authToken = getAuthToken();
+
+      try {
+        setLoading(true);
+        let response = await axios.post("/user/update/avatar", data, {
+          headers: { "auth-token": authToken },
+        });
+        setShowJoin(false);
+        console.log("Response => ", response);
+        setLoading(false);
+      } catch (err) {
+        console.log("Error => ", err);
+        setLoading(false);
+      }
+    }
+  };
+
   const onLogin = () => {
+    let loginData = { email, password };
+
     loginSchema
-      .validate({ email, password }, { abortEarly: false })
+      .validate(loginData, { abortEarly: false })
       .then(async (res) => {
         console.log(res);
         setErrors({});
 
         try {
-          let response = await axios.post("/auth/login", {});
-          console.log("Some ", response);
+          setLoading(true);
+          let {
+            data: { token, user },
+          } = await axios.post("/auth/login", loginData);
+          console.log("Some ", { token, user });
+          storeAuthToken(token);
+          setCurrentUser(user);
+          setShowJoin(false);
+          setLoading(false);
+          // setShowAvatarForm(true);
         } catch (err) {
           console.log("Error ", err.response);
+          setServerError(err.response.data.msg);
+          setLoading(false);
         }
       })
       .catch((err) => {
@@ -79,16 +125,29 @@ const ChatJoin = () => {
         setErrors({});
 
         try {
-          let response = await axios.post("/auth/register", {});
-          console.log("Some ", response);
+          setLoading(true);
+          let {
+            data: { token, user },
+          } = await axios.post("/auth/register", registerData);
+
+          storeAuthToken(token);
+          setCurrentUser(user);
+          setShowAvatarForm(true);
+          setLoading(false);
+          console.log("Some ", { token, user });
         } catch (err) {
           console.log("Error ", err.response);
+          setServerError(err.response.data.msg);
+          setLoading(false);
         }
       })
       .catch((err) => {
         setErrors(getErrors(err.inner));
       });
   };
+
+  let currentUserName =
+    Object.keys(currentUser).length > 0 ? currentUser.name : "";
 
   return (
     <div className="sign-up">
@@ -102,7 +161,7 @@ const ChatJoin = () => {
         <div className="sign-up__content">
           <div className="sign-up__text">
             <div className="sign-up__text-primary">
-              Welcome to the Chat Room
+              Welcome to the Chat Room {currentUserName}
             </div>
             <div className="sign-up__text-secondary">
               {showLogin && !showAvatarForm
@@ -143,8 +202,11 @@ const ChatJoin = () => {
             <ChatAvatar
               onChangeImage={onChangeImage}
               previewImage={previewImage}
+              onUploadAvatar={onUploadAvatar}
             />
           )}
+          {serverError ? serverError : ""}
+          {loading ? "Loading..." : ""}
         </div>
       </div>
     </div>

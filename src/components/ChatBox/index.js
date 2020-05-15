@@ -4,15 +4,22 @@ import Chat from "./Chat";
 import ChatUser from "./ChatUser";
 import { Context } from "../context/ChatContext";
 import ChatJoin from "./ChatJoin";
+import { getAuthToken } from "../../utils/authToken";
+import { getUserFromLocalStorage, clearUser } from "../../utils/manageUser";
 
 const ChatBox = () => {
   const {
-    state: { usersArray, chatMessages },
+    state: { usersArray, chatMessages, currentUser },
     addMessagesToChat,
+    setCurrentUser,
   } = useContext(Context);
   // console.log("Look here => ", chatMessages);
 
   useEffect(() => {
+    if (getAuthToken()) {
+      setShowJoin(false);
+      setCurrentUser(getUserFromLocalStorage());
+    }
     setMobileView(window.matchMedia("(max-width:749px)").matches);
   }, []);
 
@@ -28,7 +35,7 @@ const ChatBox = () => {
   const [showChatList, setShowChatList] = useState(true);
   const [showChat, setShowChat] = useState(false);
 
-  const [showLogin, setShowLogin] = useState(true);
+  const [showJoin, setShowJoin] = useState(true);
 
   const onListUserClicked = (id) => {
     setChatUser(usersArray.find((user) => user.id === id));
@@ -51,12 +58,19 @@ const ChatBox = () => {
     setShowChat(true);
   };
 
+  const clearActiveUser = () => {
+    clearUser();
+    setCurrentUser({});
+    setShowJoin(true);
+  };
+
   return (
     <div>
-      {showLogin ? (
-        <ChatJoin />
+      {showJoin ? (
+        <ChatJoin setShowJoin={setShowJoin} />
       ) : (
         <div className="chat-box">
+          <button onClick={clearActiveUser}>Logout {currentUser.name}</button>
           {showChatList || !mobileView ? (
             <ChatList
               users={usersArray}
