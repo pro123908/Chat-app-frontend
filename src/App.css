@@ -62,13 +62,14 @@ body {
   box-shadow: 0 2rem 5rem rgba(0, 0, 0, 0.4);
   color: #000;
   display: flex;
-  flex-direction: column;
+
   background-color: #3a506b;
 }
 @media only screen and (max-width: 46.87em) {
   .chat-box {
     height: 100vh;
     width: 100vw;
+    flex-direction: column;
   }
 }
 .chat-box__list {

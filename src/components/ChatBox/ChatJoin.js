@@ -199,11 +199,12 @@ const ChatJoin = ({ setShowJoin }) => {
               )}
             </>
           ) : (
-            <ChatAvatar
-              onChangeImage={onChangeImage}
-              previewImage={previewImage}
-              onUploadAvatar={onUploadAvatar}
-            />
+            // <ChatAvatar
+            //   onChangeImage={onChangeImage}
+            //   previewImage={previewImage}
+            //   onUploadAvatar={onUploadAvatar}
+            // />""
+            "Some"
           )}
           {serverError ? serverError : ""}
           {loading ? "Loading..." : ""}
