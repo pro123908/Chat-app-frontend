@@ -14,6 +14,8 @@ const Chat = ({ chatUser, backToChatList, showChatUserInfo, chatMessages }) => {
   const sendMessageToChat = (message) => {
     // setChatMessages([...chatMessages, { message, type: "out" }]);
   };
+  console.log("Chat user -> ", chatUser);
+  console.log("inside chat => ", chatMessages);
 
   const chatMessagesContent = chatMessages[chatUser.id].map(
     ({ message, type }) => {
@@ -35,7 +37,10 @@ const Chat = ({ chatUser, backToChatList, showChatUserInfo, chatMessages }) => {
 
         <div className="chat__area">{chatMessagesContent}</div>
 
-        <ChatInput sendMessageToChat={sendMessageToChat} />
+        <ChatInput
+          sendMessageToChat={sendMessageToChat}
+          chatUserId={chatUser.id}
+        />
       </div>
     </div>
   );

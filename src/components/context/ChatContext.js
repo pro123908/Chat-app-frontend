@@ -2,6 +2,7 @@ import createDataContext from "./createDataContext";
 import { setUserInLocalStorage } from "../../utils/manageUser";
 
 const initialState = {
+  loadingOverlay: false,
   currentUser: {},
   usersArray: [
     { id: 1, name: "Bilal Ahmad", image: "bilal" },
@@ -36,35 +37,49 @@ const initialState = {
   },
 };
 
-const chatReducer = (state, { type, payload }) => {
-  let { chatMessages } = state;
+const addChatMessagesToState = (state, { chatUserId, message, type }) => {
+  const { chatMessages } = state;
 
+  let currentChat = chatMessages[chatUserId];
+
+  currentChat = [...currentChat, { message, type }];
+
+  chatMessages[chatUserId] = currentChat;
+
+  return { ...state, chatMessages };
+};
+
+const chatReducer = (state, { type, payload }) => {
   switch (type) {
     case "ADD_MESSAGES_TO_CHAT":
-      return { ...state, chatMessages: [...chatMessages, payload] };
+      return addChatMessagesToState(state, payload);
 
     case "SET_CURRENT_USER":
       return { ...state, currentUser: payload };
+
+    case "SET_LOADING_OVERLAY":
+      return { ...state, loadingOverlay: payload };
 
     default:
       return state;
   }
 };
 
+const setLoadingOverlay = (dispatch) => {
+  return (flag) => {
+    dispatch({ type: "SET_LOADING_OVERLAY", payload: flag });
+  };
+};
+
 const addMessagesToChat = (dispatch) => {
   return (message) => {
-    console.log("Message => ", message);
     dispatch({ type: "ADD_MESSAGES_TO_CHAT", payload: message });
   };
 };
 
 const setCurrentUser = (dispatch) => {
   return (user) => {
-    console.log("USer about to set => ", user);
     if (Object.keys(user).length > 0) {
-      user.image =
-        "https://res.cloudinary.com/dlin8rzcj/image/upload/v1589495323/el7sqn6ul2qjekvddi9h.jpg";
-
       setUserInLocalStorage(user);
     }
 
@@ -73,6 +88,6 @@ const setCurrentUser = (dispatch) => {
 };
 export const { Provider, Context } = createDataContext(
   chatReducer,
-  { addMessagesToChat, setCurrentUser },
+  { addMessagesToChat, setCurrentUser, setLoadingOverlay },
   initialState
 );

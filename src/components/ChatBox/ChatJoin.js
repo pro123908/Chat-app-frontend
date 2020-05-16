@@ -13,6 +13,7 @@ import { Context } from "../context/ChatContext";
 const ChatJoin = ({ setShowJoin }) => {
   const {
     setCurrentUser,
+    setLoadingOverlay,
     state: { currentUser },
   } = useContext(Context);
 
@@ -25,7 +26,6 @@ const ChatJoin = ({ setShowJoin }) => {
   const [errors, setErrors] = useState({});
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [serverError, setServerError] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const onChangeImage = (e) => {
     console.log(e.target.files[0]);
@@ -48,6 +48,7 @@ const ChatJoin = ({ setShowJoin }) => {
     setName("");
     setPassword("");
     setShowLogin(!showLogin);
+    setServerError("");
     setErrors({});
   };
 
@@ -72,16 +73,17 @@ const ChatJoin = ({ setShowJoin }) => {
       let authToken = getAuthToken();
 
       try {
-        setLoading(true);
+        setLoadingOverlay(true);
         let response = await axios.post("/user/update/avatar", data, {
           headers: { "auth-token": authToken },
         });
         setShowJoin(false);
         console.log("Response => ", response);
-        setLoading(false);
+        setCurrentUser({ ...currentUser, avatar: response.data });
+        setLoadingOverlay(false);
       } catch (err) {
         console.log("Error => ", err);
-        setLoading(false);
+        setLoadingOverlay(false);
       }
     }
   };
@@ -96,7 +98,7 @@ const ChatJoin = ({ setShowJoin }) => {
         setErrors({});
 
         try {
-          setLoading(true);
+          setLoadingOverlay(true);
           let {
             data: { token, user },
           } = await axios.post("/auth/login", loginData);
@@ -104,12 +106,12 @@ const ChatJoin = ({ setShowJoin }) => {
           storeAuthToken(token);
           setCurrentUser(user);
           setShowJoin(false);
-          setLoading(false);
+          setLoadingOverlay(false);
           // setShowAvatarForm(true);
         } catch (err) {
           console.log("Error ", err.response);
           setServerError(err.response.data.msg);
-          setLoading(false);
+          setLoadingOverlay(false);
         }
       })
       .catch((err) => {
@@ -125,7 +127,7 @@ const ChatJoin = ({ setShowJoin }) => {
         setErrors({});
 
         try {
-          setLoading(true);
+          setLoadingOverlay(true);
           let {
             data: { token, user },
           } = await axios.post("/auth/register", registerData);
@@ -133,12 +135,12 @@ const ChatJoin = ({ setShowJoin }) => {
           storeAuthToken(token);
           setCurrentUser(user);
           setShowAvatarForm(true);
-          setLoading(false);
+          setLoadingOverlay(false);
           console.log("Some ", { token, user });
         } catch (err) {
           console.log("Error ", err.response);
           setServerError(err.response.data.msg);
-          setLoading(false);
+          setLoadingOverlay(false);
         }
       })
       .catch((err) => {
@@ -172,6 +174,14 @@ const ChatJoin = ({ setShowJoin }) => {
             </div>
           </div>
 
+          {serverError ? (
+            <div className="server-error-box">
+              <div className="server-error">{serverError}</div>
+            </div>
+          ) : (
+            ""
+          )}
+
           {!showAvatarForm ? (
             <>
               {!showLogin ? (
@@ -199,15 +209,12 @@ const ChatJoin = ({ setShowJoin }) => {
               )}
             </>
           ) : (
-            // <ChatAvatar
-            //   onChangeImage={onChangeImage}
-            //   previewImage={previewImage}
-            //   onUploadAvatar={onUploadAvatar}
-            // />""
-            "Some"
+            <ChatAvatar
+              onChangeImage={onChangeImage}
+              previewImage={previewImage}
+              onUploadAvatar={onUploadAvatar}
+            />
           )}
-          {serverError ? serverError : ""}
-          {loading ? "Loading..." : ""}
         </div>
       </div>
     </div>

@@ -2,17 +2,19 @@ import React, { useState, useContext } from "react";
 import { Context } from "../context/ChatContext";
 import IconButton from "./IconButton";
 
-const ChatInput = ({ sendMessageToChat }) => {
+const ChatInput = ({ sendMessageToChat, chatUserId }) => {
   const { addMessagesToChat } = useContext(Context);
 
   const [message, setMessage] = useState("");
 
   const addMessagesToChat_2 = () => {
-    addMessagesToChat({ message, type: "out" });
+    addMessagesToChat({ message, type: "out", chatUserId });
     setMessage("");
     setTimeout(() => {
       let chatDiv = document.querySelector(".chat__area");
-      chatDiv.scrollTop = chatDiv.scrollHeight;
+      if (chatDiv.scrollHeight) {
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+      }
     }, 100);
   };
 

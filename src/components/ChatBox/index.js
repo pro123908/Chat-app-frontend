@@ -6,10 +6,12 @@ import { Context } from "../context/ChatContext";
 import ChatJoin from "./ChatJoin";
 import { getAuthToken } from "../../utils/authToken";
 import { getUserFromLocalStorage, clearUser } from "../../utils/manageUser";
+import ChatNav from "../ChatBoxComponents/ChatNav";
+import LoadingOverlay from "react-loading-overlay";
 
 const ChatBox = () => {
   const {
-    state: { usersArray, chatMessages, currentUser },
+    state: { usersArray, chatMessages, currentUser, loadingOverlay },
     addMessagesToChat,
     setCurrentUser,
   } = useContext(Context);
@@ -65,39 +67,47 @@ const ChatBox = () => {
   };
 
   return (
-    <div>
-      {showJoin ? (
-        <ChatJoin setShowJoin={setShowJoin} />
-      ) : (
-        <div className="chat-box">
-          <button onClick={clearActiveUser}>Logout {currentUser.name}</button>
-          {showChatList || !mobileView ? (
-            <ChatList
-              users={usersArray}
-              onListUserClicked={onListUserClicked}
+    <LoadingOverlay active={loadingOverlay} spinner>
+      <div class="chat-app">
+        {showJoin ? (
+          <ChatJoin setShowJoin={setShowJoin} />
+        ) : (
+          <>
+            <ChatNav
+              clearActiveUser={clearActiveUser}
+              currentUser={currentUser}
             />
-          ) : (
-            ""
-          )}
+            <div className="chat-box">
+              {/* <button onClick={clearActiveUser}>Logout {currentUser.name}</button> */}
+              {showChatList || !mobileView ? (
+                <ChatList
+                  users={usersArray}
+                  onListUserClicked={onListUserClicked}
+                />
+              ) : (
+                ""
+              )}
 
-          {showChat || !mobileView ? (
-            <Chat
-              chatUser={chatUser}
-              backToChatList={backToChatList}
-              showChatUserInfo={showChatUserInfo}
-              chatMessages={chatMessages}
-            />
-          ) : (
-            ""
-          )}
-          {(!showChatList && !showChat) || !mobileView ? (
-            <ChatUser chatUser={chatUser} backToChat={backToChat} />
-          ) : (
-            ""
-          )}
-        </div>
-      )}
-    </div>
+              {showChat || !mobileView ? (
+                <Chat
+                  chatUser={chatUser}
+                  backToChatList={backToChatList}
+                  showChatUserInfo={showChatUserInfo}
+                  chatMessages={chatMessages}
+                />
+              ) : (
+                ""
+              )}
+              {(!showChatList && !showChat) || !mobileView ? (
+                <ChatUser chatUser={chatUser} backToChat={backToChat} />
+              ) : (
+                ""
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </LoadingOverlay>
   );
 };
 
